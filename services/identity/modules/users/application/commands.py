@@ -1,21 +1,22 @@
 from uuid import uuid4
 
-from services.identity.common.domain.entities import User
+from services.identity.core.domain.entities import User
 from services.identity.modules.users.application.dtos import (
     CreateUserInputDTO,
     UpdateUserInputDTO,
     UpdateUserOutputDTO,
 )
 from services.identity.modules.users.domain.repositories import UserRepositoryProtocol
+from services.identity.modules.users.domain.security import PasswordHasherProtocol
 from services.identity.modules.users.domain.validators import UserValidator
 
 
 class RegisterUserInteractor:
     def __init__(
-            self,
-            repository: UserRepositoryProtocol,
-            password_hasher: PasswordHasher,
-            dto: CreateUserInputDTO
+        self,
+        repository: UserRepositoryProtocol,
+        password_hasher: PasswordHasherProtocol,
+        dto: CreateUserInputDTO,
     ):
         self.repository = repository
         self.password_hasher = password_hasher
@@ -25,18 +26,20 @@ class RegisterUserInteractor:
 
     async def __call__(self) -> None:
         await UserValidator.check_email_unique(self.email, self.repository)
-        hashed_password = await self.password_hasher.hash_password(self.password)
+        hashed_password = await self.password_hasher.hash(self.password)
         user = User(
             id=uuid4(),
             name=self.name,
             email=self.email,
-            hashed_password=hashed_password
+            hashed_password=hashed_password,
         )
         await self.repository.create(user)
 
 
 class UpdateUserInteractor:
-    def __init__(self, repository: UserRepositoryProtocol, dto: UpdateUserInputDTO, user_id) -> None:
+    def __init__(
+        self, repository: UserRepositoryProtocol, dto: UpdateUserInputDTO, user_id
+    ) -> None:
         self.repository = repository
         self.user_id = user_id
         self.name = dto.name
@@ -53,5 +56,11 @@ class UpdateUserInteractor:
             user.name = self.name
 
         await self.repository.update(user)
-        return user
+
+        dto = UpdateUserOutputDTO(
+            name=user.name,
+            email=user.email,
+        )
+
+        return dto
 

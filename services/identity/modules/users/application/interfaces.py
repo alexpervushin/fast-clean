@@ -1,6 +1,10 @@
 from typing import Protocol
 
-from services.identity.modules.users.application.dtos import CreateUserInputDTO, UpdateUserInputDTO, UpdateUserOutputDTO
+from services.identity.modules.users.application.dtos import (
+    CreateUserInputDTO,
+    UpdateUserInputDTO,
+    UpdateUserOutputDTO,
+)
 
 
 class RegisterUserInteractorProtocol(Protocol):

@@ -1,3 +1,7 @@
+from services.identity.modules.users.domain.exceptions import (
+    NotFoundError,
+    UserAlreadyExistsError,
+)
 from services.identity.modules.users.domain.repositories import UserRepositoryProtocol
 
 

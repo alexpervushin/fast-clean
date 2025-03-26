@@ -1,6 +1,8 @@
 from typing import Protocol
 from uuid import UUID
-from services.identity.common.domain.entities import User
+
+from services.identity.core.domain.entities import User
+
 
 class UserRepositoryProtocol(Protocol):
     async def get_by_email(self, email: str) -> User: ...

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, EmailStr, field_validator
 
 
@@ -10,3 +12,10 @@ class CreateUserRequest(BaseModel):
     def validate_password(cls, value):
         if len(value) < 8:
             raise ValueError("Password must be at least 8 characters")
+
+
+class UpdateUserRequest(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+    
