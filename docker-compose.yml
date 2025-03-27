@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: users
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  users-service:
+    build:
+      context: ./services/users
+      dockerfile: services/users/Dockerfile
+    environment:
+      - POSTGRES__USER=postgres
+      - POSTGRES__PASSWORD=postgres
+      - POSTGRES__DB=users
+      - POSTGRES__HOST=postgres
+      - POSTGRES__PORT=5432
+      - SENTRY__DSN=https://ab230c3cc68cbdece9c4014ad3352e9c@o4509043163463680.ingest.de.sentry.io/4509043164381264
+      - RUNNER__WORKERS=1
+      - SERVER__PORT=8000
+      - SERVER__WORKERS=1
+      - SERVER__ROOT_PATH=
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: python -m services.users.infrastructure.bootstrap.rest.main
+    volumes:
+      - ./services:/app/services
+
+  api-gateway:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./api-gateway/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - users-service
+
+volumes:
+  postgres_data:
