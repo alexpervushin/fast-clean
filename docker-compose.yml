@@ -19,8 +19,8 @@ services:
 
   users-service:
     build:
-      context: ./services/users
-      dockerfile: services/users/Dockerfile
+      context: microservices/users
+      dockerfile: Dockerfile
     environment:
       - POSTGRES__USER=postgres
       - POSTGRES__PASSWORD=postgres
@@ -37,9 +37,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: python -m services.users.infrastructure.bootstrap.rest.main
+    command: python -m microservices.users.bootstrap.web_server
     volumes:
-      - ./services:/app/services
+      - ./microservices:/app/microservices
 
   api-gateway:
     image: nginx:alpine
