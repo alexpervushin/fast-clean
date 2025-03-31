@@ -1,6 +1,12 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from microservices.shared.infrastructure.config import Postgres, Runner, Sentry, Server
+from microservices.shared.infrastructure.config import (
+    JWT,
+    Postgres,
+    Runner,
+    Sentry,
+    Server,
+)
 
 
 class Settings(BaseSettings):
@@ -8,6 +14,7 @@ class Settings(BaseSettings):
     postgres: Postgres
     runner: Runner
     server: Server
+    jwt: JWT
 
     model_config = SettingsConfigDict(
         env_nested_delimiter="__",
@@ -17,4 +24,4 @@ class Settings(BaseSettings):
 
 
 def get_settings() -> Settings:
-    return Settings()  # type: ignore
+    return Settings() # noqa

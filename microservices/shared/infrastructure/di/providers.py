@@ -6,11 +6,16 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from microservices.shared.domain.id_generator import IdGeneratorProtocol
 from microservices.shared.domain.security import PasswordHasherProtocol
+from microservices.shared.infrastructure.config import JWT as JWTSettings
 from microservices.shared.infrastructure.database.session import (
     AsyncSessionProtocol,
     TransactionManager,
     create_async_session_maker,
     create_engine,
+)
+from microservices.shared.infrastructure.security.jwt_handler import (
+    JWTHandlerProtocol,
+    PyJWTHandler,
 )
 from microservices.shared.infrastructure.security.password_hasher import (
     ArgonPasswordHasher,
@@ -55,13 +60,23 @@ class SharedDatabaseProvider(Provider):
         return session
 
 
-class SharedPasswordHasherProvider(Provider):
-    @provide(scope=Scope.APP)
-    def get_password_hasher(self) -> PasswordHasherProtocol:
-        return ArgonPasswordHasher()
-
-
 class SharedIdGeneratorProvider(Provider):
     @provide(scope=Scope.APP)
     def get_id_generator(self) -> IdGeneratorProtocol:
         return UuidGenerator()
+
+
+class SharedSecurityProvider(Provider):
+    @provide(scope=Scope.APP)
+    def get_jwt_settings(self, settings: BaseSettings) -> JWTSettings:
+        if not hasattr(settings, "jwt"):
+             raise AttributeError("Settings object must have a 'jwt' attribute")
+        return settings.jwt
+
+    @provide(scope=Scope.APP)
+    def get_jwt_handler(self, jwt_settings: JWTSettings) -> JWTHandlerProtocol:
+        return PyJWTHandler(settings=jwt_settings)
+
+    @provide(scope=Scope.APP)
+    def get_password_hasher(self) -> PasswordHasherProtocol:
+        return ArgonPasswordHasher()

@@ -12,7 +12,10 @@ from microservices.shared.infrastructure.http.exceptions_handler import (
 from microservices.shared.infrastructure.observability.sentry import setup_sentry
 from microservices.users.infrastructure.config import Settings, get_settings
 from microservices.users.infrastructure.di.providers import container
-from microservices.users.presentation.rest.controllers import router as users_router
+from microservices.users.presentation.rest.auth_controllers import router as auth_router
+from microservices.users.presentation.rest.users_controllers import (
+    router as users_router,
+)
 
 
 @asynccontextmanager
@@ -40,7 +43,7 @@ def create_app() -> FastAPI:
 
     register_exception_handlers(app)
 
-    routers = (users_router,)
+    routers = (auth_router, users_router)
 
     for router in routers:
         app.include_router(router)

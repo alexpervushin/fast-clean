@@ -10,9 +10,11 @@ from microservices.shared.infrastructure.database.session import (
 from microservices.shared.infrastructure.di.providers import (
     SharedDatabaseProvider,
     SharedIdGeneratorProvider,
-    SharedPasswordHasherProvider,
+    SharedSecurityProvider,
 )
-from microservices.users.application.services import UserService
+from microservices.shared.infrastructure.security.jwt_handler import JWTHandlerProtocol
+from microservices.users.application.auth_service import AuthService
+from microservices.users.application.user_service import UserService
 from microservices.users.domain.repositories import UserRepositoryProtocol
 from microservices.users.infrastructure.config import Settings, get_settings
 from microservices.users.infrastructure.persistence.repositories import (
@@ -52,10 +54,27 @@ class UserProvider(Provider):
             id_generator=id_generator,
         )
 
+
+class AuthProvider(Provider):
+    @provide(scope=Scope.REQUEST)
+    def get_auth_service(
+        self,
+        repository: UserRepositoryProtocol,
+        password_hasher: PasswordHasherProtocol,
+        jwt_handler: JWTHandlerProtocol,
+    ) -> AuthService:
+        return AuthService(
+            user_repository=repository,
+            password_hasher=password_hasher,
+            jwt_handler=jwt_handler,
+        )
+
+
 container = make_async_container(
     ConfigProvider(),
     SharedDatabaseProvider(),
-    SharedPasswordHasherProvider(),
+    SharedSecurityProvider(),
     SharedIdGeneratorProvider(),
     UserProvider(),
+    AuthProvider(),
 )

@@ -32,6 +32,9 @@ services:
       - SERVER__PORT=8000
       - SERVER__WORKERS=1
       - SERVER__ROOT_PATH=
+      - JWT__SECRET_KEY=your-hardcoded-secret-key-replace-me
+      - JWT__ALGORITHM=HS256
+      - JWT__ACCESS_TOKEN_EXPIRE_MINUTES=30
     ports:
       - "8000:8000"
     depends_on:
@@ -40,15 +43,6 @@ services:
     command: python -m microservices.users.bootstrap.web_server
     volumes:
       - ./microservices:/app/microservices
-
-  api-gateway:
-    image: nginx:alpine
-    ports:
-      - "8080:80"
-    volumes:
-      - ./api-gateway/nginx.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - users-service
 
 volumes:
   postgres_data:
