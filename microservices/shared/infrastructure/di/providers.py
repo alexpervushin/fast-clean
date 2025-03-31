@@ -4,8 +4,10 @@ from dishka import Provider, Scope, provide
 from pydantic_settings import BaseSettings
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
-from microservices.shared.domain.id_generator import IdGeneratorProtocol
-from microservices.shared.domain.security import PasswordHasherProtocol
+from microservices.shared.domain.ports import (
+    IdGeneratorProtocol,
+    PasswordHasherProtocol,
+)
 from microservices.shared.infrastructure.config import JWT as JWTSettings
 from microservices.shared.infrastructure.database.session import (
     AsyncSessionProtocol,

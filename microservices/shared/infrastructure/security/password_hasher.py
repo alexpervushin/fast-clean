@@ -1,6 +1,6 @@
 from passlib.context import CryptContext
 
-from microservices.shared.domain.security import PasswordHasherProtocol
+from microservices.shared.domain.ports import PasswordHasherProtocol
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 

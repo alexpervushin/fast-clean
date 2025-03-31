@@ -5,6 +5,10 @@ from microservices.shared.domain.entities import BaseEntity
 from microservices.shared.domain.value_objects import Pagination
 
 
+class IdGeneratorProtocol(Protocol):
+    def generate_id(self) -> UUID: ...
+
+
 class BaseRepositoryProtocol[D: BaseEntity](Protocol):
     async def get_by_id(self, obj_id: UUID) -> D: ...
 
@@ -17,3 +21,8 @@ class BaseRepositoryProtocol[D: BaseEntity](Protocol):
     async def update(self, obj: D) -> D: ...
 
     async def delete(self, obj_id: UUID) -> None: ...
+
+
+class PasswordHasherProtocol(Protocol):
+    async def hash(self, password: str) -> str: ...
+    async def verify(self, password: str, hashed_password: str) -> bool: ...

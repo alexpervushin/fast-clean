@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
+from uuid import UUID
 
 
 @dataclass
@@ -17,3 +18,10 @@ class UpdateUserInputDTO:
 class UpdateUserOutputDTO:
     name: str
     email: str
+
+@dataclass
+class UserOutputDTO:
+    id: UUID
+    name: str
+    email: str
+

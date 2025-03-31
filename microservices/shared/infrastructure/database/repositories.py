@@ -3,11 +3,10 @@ from typing import Generic, Type, TypeVar
 from uuid import UUID
 
 from sqlalchemy import select
-from sqlalchemy.orm import attributes
 
 from microservices.shared.domain.entities import BaseEntity
 from microservices.shared.domain.exceptions import NotFoundError
-from microservices.shared.domain.repositories import BaseRepositoryProtocol
+from microservices.shared.domain.ports import BaseRepositoryProtocol
 from microservices.shared.domain.value_objects import Pagination
 from microservices.shared.infrastructure.database.orm import BaseModel
 from microservices.shared.infrastructure.database.session import (
@@ -65,13 +64,7 @@ class BaseRepository(Generic[D, M], BaseRepositoryProtocol[D], ABC):
     async def update(self, domain_obj: D) -> D:
         orm_obj_to_merge = self._map_to_orm(domain_obj)
         merged_orm_obj = await self.db.merge(orm_obj_to_merge)
-        if merged_orm_obj not in self.db.dirty and not attributes.instance_state(merged_orm_obj).transient:
-             pass
-        else:
-             await self.db.flush([merged_orm_obj])
-
         return self._map_to_domain(merged_orm_obj)
-
 
     async def delete(self, obj_id: UUID) -> None:
         orm_obj = await self.db.get(self.model_type, obj_id)

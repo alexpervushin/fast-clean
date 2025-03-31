@@ -1,8 +1,10 @@
 from dishka import Provider, Scope, make_async_container, provide
 from pydantic_settings import BaseSettings
 
-from microservices.shared.domain.id_generator import IdGeneratorProtocol
-from microservices.shared.domain.security import PasswordHasherProtocol
+from microservices.shared.domain.ports import (
+    IdGeneratorProtocol,
+    PasswordHasherProtocol,
+)
 from microservices.shared.infrastructure.database.session import (
     AsyncSessionProtocol,
     TransactionManager,
@@ -13,9 +15,15 @@ from microservices.shared.infrastructure.di.providers import (
     SharedSecurityProvider,
 )
 from microservices.shared.infrastructure.security.jwt_handler import JWTHandlerProtocol
-from microservices.users.application.auth_service import AuthService
-from microservices.users.application.user_service import UserService
-from microservices.users.domain.repositories import UserRepositoryProtocol
+from microservices.users.application.commands import (
+    AuthenticateUserCommand,
+    RegisterUserCommand,
+    UpdateUserCommand,
+)
+from microservices.users.application.queries import (
+    GetUserByIdQuery,
+)
+from microservices.users.domain.ports import UserRepositoryProtocol
 from microservices.users.infrastructure.config import Settings, get_settings
 from microservices.users.infrastructure.persistence.repositories import (
     UserRepository,
@@ -28,8 +36,8 @@ class ConfigProvider(Provider):
         return get_settings()
 
     @provide(scope=Scope.APP)
-    async def provide_base_settings(self) -> BaseSettings:
-        return get_settings()
+    async def provide_base_settings(self, settings: Settings) -> BaseSettings:
+        return settings
 
 
 class UserProvider(Provider):
@@ -40,31 +48,51 @@ class UserProvider(Provider):
         return UserRepository(session)
 
     @provide(scope=Scope.REQUEST)
-    def get_user_service(
+    def get_register_user_command(
+        self,
+        repository: UserRepositoryProtocol,
+        password_hasher: PasswordHasherProtocol,
+        id_generator: IdGeneratorProtocol,
+        transaction_manager: TransactionManager,
+    ) -> RegisterUserCommand:
+        return RegisterUserCommand(
+            repository=repository,
+            password_hasher=password_hasher,
+            id_generator=id_generator,
+            transaction_manager=transaction_manager,
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def get_update_user_command(
         self,
         repository: UserRepositoryProtocol,
         transaction_manager: TransactionManager,
-        password_hasher: PasswordHasherProtocol,
-        id_generator: IdGeneratorProtocol,
-    ) -> UserService:
-        return UserService(
+    ) -> UpdateUserCommand:
+        return UpdateUserCommand(
             repository=repository,
             transaction_manager=transaction_manager,
-            password_hasher=password_hasher,
-            id_generator=id_generator,
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def get_user_by_id_query(
+        self,
+        user_repository: UserRepositoryProtocol,
+    ) -> GetUserByIdQuery:
+        return GetUserByIdQuery(
+            user_repository=user_repository,
         )
 
 
 class AuthProvider(Provider):
     @provide(scope=Scope.REQUEST)
-    def get_auth_service(
+    def get_authenticate_user_command(
         self,
-        repository: UserRepositoryProtocol,
+        user_repository: UserRepositoryProtocol,
         password_hasher: PasswordHasherProtocol,
         jwt_handler: JWTHandlerProtocol,
-    ) -> AuthService:
-        return AuthService(
-            user_repository=repository,
+    ) -> AuthenticateUserCommand:
+        return AuthenticateUserCommand(
+            user_repository=user_repository,
             password_hasher=password_hasher,
             jwt_handler=jwt_handler,
         )

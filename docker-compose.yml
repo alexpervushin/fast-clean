@@ -40,7 +40,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: python -m microservices.users.bootstrap.web_server
+    command: python -m microservices.users.entrypoints.web_server
     volumes:
       - ./microservices:/app/microservices
 

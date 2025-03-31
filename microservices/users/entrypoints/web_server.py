@@ -54,7 +54,7 @@ def create_app() -> FastAPI:
 if __name__ == "__main__":
     settings = get_settings()
     uvicorn.run(
-        "microservices.users.bootstrap.web_server:create_app",
+        "microservices.users.entrypoints.web_server:create_app",
         workers=settings.server.workers,
         host="0.0.0.0",
         port=settings.server.port,

@@ -2,7 +2,7 @@ from microservices.users.domain.exceptions import (
     NotFoundError,
     UserAlreadyExistsError,
 )
-from microservices.users.domain.repositories import UserRepositoryProtocol
+from microservices.users.domain.ports import UserRepositoryProtocol
 
 
 class UserValidator:

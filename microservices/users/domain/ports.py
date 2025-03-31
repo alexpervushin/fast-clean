@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from microservices.shared.domain.repositories import BaseRepositoryProtocol
+from microservices.shared.domain.ports import BaseRepositoryProtocol
 from microservices.users.domain.entities import User
 
 

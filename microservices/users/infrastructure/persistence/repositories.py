@@ -3,7 +3,7 @@ from sqlalchemy import select
 from microservices.shared.domain.exceptions import NotFoundError
 from microservices.shared.infrastructure.database.repositories import BaseRepository
 from microservices.users.domain.entities import User
-from microservices.users.domain.repositories import UserRepositoryProtocol
+from microservices.users.domain.ports import UserRepositoryProtocol
 from microservices.users.infrastructure.persistence.orm import UserModel
 
 
