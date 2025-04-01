@@ -9,7 +9,6 @@ class DataSourceType(StrEnum):
     ACTIVITY_WATCH = "activitywatch"
     GOOGLE_CALENDAR = "google_calendar"
     OUTLOOK_CALENDAR = "outlook_calendar"
-    FITNESS_TRACKER = "fitness_tracker"
 
 
 @dataclass
@@ -38,11 +37,6 @@ class CalendarConfig(BaseDataSourceConfig):
     credentials_json: Dict[str, Any] | None = None
 
 
-@dataclass
-class FitnessTrackerConfig(BaseDataSourceConfig):
-    api_key: str | None = None
-    user_identifier: str | None = None
-
 
 DATA_SOURCE_CONFIG_MAP: Dict[DataSourceType, type[BaseDataSourceConfig]] = {
     DataSourceType.GIT: GitConfig,
@@ -50,5 +44,4 @@ DATA_SOURCE_CONFIG_MAP: Dict[DataSourceType, type[BaseDataSourceConfig]] = {
     DataSourceType.ACTIVITY_WATCH: ActivityWatchConfig,
     DataSourceType.GOOGLE_CALENDAR: CalendarConfig,
     DataSourceType.OUTLOOK_CALENDAR: CalendarConfig,
-    DataSourceType.FITNESS_TRACKER: FitnessTrackerConfig,
 }
