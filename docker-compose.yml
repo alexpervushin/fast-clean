@@ -1,48 +1,105 @@
 version: '3.8'
 
 services:
-  postgres:
+  postgres-users:
     image: postgres:16
+    container_name: postgres-users
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: users
+      POSTGRES_USER: postgres_user
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: users_db
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_users_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres_user -d users_db" ]
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
+
+  postgres-settings:
+    image: postgres:16
+    container_name: postgres-settings
+    environment:
+      POSTGRES_USER: postgres_user
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: settings_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_settings_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres_user -d settings_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
   users-service:
     build:
-      context: microservices/users
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: microservices/users/Dockerfile
     environment:
-      - POSTGRES__USER=postgres
-      - POSTGRES__PASSWORD=postgres
-      - POSTGRES__DB=users
-      - POSTGRES__HOST=postgres
+      - POSTGRES__USER=postgres_user
+      - POSTGRES__PASSWORD=postgres_password
+      - POSTGRES__DB=users_db
+      - POSTGRES__HOST=postgres-users
       - POSTGRES__PORT=5432
-      - SENTRY__DSN=https://ab230c3cc68cbdece9c4014ad3352e9c@o4509043163463680.ingest.de.sentry.io/4509043164381264
+      - SENTRY__DSN=${SENTRY_DSN:-}
       - RUNNER__WORKERS=1
       - SERVER__PORT=8000
       - SERVER__WORKERS=1
-      - SERVER__ROOT_PATH=
-      - JWT__SECRET_KEY=your-hardcoded-secret-key-replace-me
+      - SERVER__ROOT_PATH=/api/users
+      - JWT__SECRET_KEY=${JWT_SECRET_KEY:-your-default-unsafe-secret}
       - JWT__ALGORITHM=HS256
       - JWT__ACCESS_TOKEN_EXPIRE_MINUTES=30
-    ports:
-      - "8000:8000"
     depends_on:
-      postgres:
+      postgres-users:
         condition: service_healthy
-    command: python -m microservices.users.entrypoints.web_server
+    command: >
+      sh -c "python -m microservices.users.entrypoints.web_server --proxy-headers --forwarded-allow-ips='*'"
     volumes:
       - ./microservices:/app/microservices
+    restart: unless-stopped
+
+  settings-service:
+    build:
+      context: .
+      dockerfile: microservices/settings/Dockerfile
+    environment:
+      - POSTGRES__USER=postgres_user
+      - POSTGRES__PASSWORD=postgres_password
+      - POSTGRES__DB=settings_db
+      - POSTGRES__HOST=postgres-settings
+      - POSTGRES__PORT=5432
+      - SENTRY__DSN=${SENTRY_DSN:-}
+      - SERVER__PORT=8001
+      - SERVER__WORKERS=1
+      - SERVER__ROOT_PATH=/api/settings
+      - JWT__SECRET_KEY=${JWT_SECRET_KEY:-your-default-unsafe-secret}
+      - JWT__ALGORITHM=HS256
+    depends_on:
+      postgres-settings:
+        condition: service_healthy
+    command: >
+      sh -c "python -m microservices.settings.entrypoints.web_server --proxy-headers --forwarded-allow-ips='*'"
+    volumes:
+      - ./microservices:/app/microservices
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.25
+    ports:
+      - "80:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - users-service
+      - settings-service
+    restart: unless-stopped
 
 volumes:
-  postgres_data:
+  postgres_users_data:
+  postgres_settings_data:

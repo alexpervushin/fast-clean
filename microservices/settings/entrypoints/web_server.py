@@ -11,21 +11,22 @@ from microservices.shared.infrastructure.http.exceptions_handler import (
     register_exception_handlers,
 )
 from microservices.shared.infrastructure.observability.sentry import setup_sentry
-from microservices.users.infrastructure.config import Settings, get_settings
-from microservices.users.infrastructure.di.providers import container
-from microservices.users.presentation.rest.auth_controllers import router as auth_router
-from microservices.users.presentation.rest.users_controllers import (
-    router as users_router,
-)
+from microservices.settings.infrastructure.config import Settings, get_settings
+from microservices.settings.infrastructure.di.providers import container
+from microservices.settings.presentation.rest.settings_controllers import router as settings_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     lifespan_settings = await container.get(Settings)
+
     engine = create_engine(lifespan_settings)
+
     async with engine.begin() as conn:
         await conn.run_sync(BaseModel.metadata.create_all)
+
     yield
+
     await container.close()
 
 
@@ -35,16 +36,14 @@ def create_app() -> FastAPI:
     if app_settings.sentry and app_settings.sentry.dsn:
         setup_sentry(app_settings)
 
+
     app = FastAPI(lifespan=lifespan)
 
     setup_dishka(container, app)
 
     register_exception_handlers(app)
 
-    routers = (auth_router, users_router)
-
-    for router in routers:
-        app.include_router(router)
+    app.include_router(settings_router)
 
     return app
 
@@ -52,7 +51,7 @@ def create_app() -> FastAPI:
 if __name__ == "__main__":
     settings = get_settings()
     uvicorn.run(
-        "microservices.users.entrypoints.web_server:create_app",
+        "microservices.settings.entrypoints.web_server:create_app",
         factory=True,
         workers=settings.server.workers,
         host="0.0.0.0",

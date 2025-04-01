@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 
 def setup_sentry(settings: BaseSettings) -> None:
     sentry_sdk.init(
-        dsn=settings.sentry.dsn,
+        dsn=settings.sentry.dsn, # noqa
         # Add data like request headers and IP for users,
         # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
         send_default_pii=True,

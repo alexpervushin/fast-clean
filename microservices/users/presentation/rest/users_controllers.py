@@ -13,9 +13,11 @@ from microservices.users.application.commands import (
 from microservices.users.application.dtos import (
     CreateUserInputDTO,
     UpdateUserInputDTO,
+    UpdateUserOutputDTO,
+    UserOutputDTO,
 )
 from microservices.users.application.queries import GetUserByIdQuery
-from microservices.users.presentation.rest.dependencies import (
+from microservices.shared.infrastructure.http.dependencies import (
     decode_token_and_get_user_id,
     get_validated_token,
 )
@@ -47,8 +49,8 @@ async def read_users_me(
     query: FromDishka[GetUserByIdQuery],
 ) -> UserResponse:
     current_user_id = decode_token_and_get_user_id(token_str, jwt_handler)
-    user_dto = await query(user_id=current_user_id)
-    return UserResponse(id=user_dto.id, name=user_dto.name, email=user_dto.email)
+    user_dto: UserOutputDTO = await query(user_id=current_user_id)
+    return UserResponse.model_validate(user_dto)
 
 
 @router.put("/me", response_model=UpdateUserResponse)
@@ -62,5 +64,5 @@ async def update_current_user(
     dto = UpdateUserInputDTO(
         name=body.name, email=str(body.email) if body.email else None
     )
-    result_dto = await command(user_id=current_user_id, dto=dto)
-    return UpdateUserResponse(name=result_dto.name, email=result_dto.email)
+    result_dto: UpdateUserOutputDTO = await command(user_id=current_user_id, dto=dto)
+    return UpdateUserResponse.model_validate(result_dto)

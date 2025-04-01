@@ -56,7 +56,7 @@ class AsyncSessionProtocol(Protocol):
 
 def create_engine(settings: BaseSettings) -> AsyncEngine:
     return create_async_engine(
-        settings.postgres.url,
+        settings.postgres.url, # noqa
         poolclass=sqlalchemy.pool.AsyncAdaptedQueuePool,
     )
 

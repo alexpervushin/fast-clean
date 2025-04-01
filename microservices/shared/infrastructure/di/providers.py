@@ -59,7 +59,7 @@ class SharedDatabaseProvider(Provider):
         self,
         session: AsyncSession,
     ) -> AsyncSessionProtocol:
-        return session
+        return session # noqa
 
 
 class SharedIdGeneratorProvider(Provider):
@@ -73,7 +73,7 @@ class SharedSecurityProvider(Provider):
     def get_jwt_settings(self, settings: BaseSettings) -> JWTSettings:
         if not hasattr(settings, "jwt"):
              raise AttributeError("Settings object must have a 'jwt' attribute")
-        return settings.jwt
+        return settings.jwt # noqa
 
     @provide(scope=Scope.APP)
     def get_jwt_handler(self, jwt_settings: JWTSettings) -> JWTHandlerProtocol:
