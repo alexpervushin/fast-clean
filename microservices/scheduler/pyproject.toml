@@ -1,0 +1,13 @@
+[project]
+name = "devwatch-scheduler-service"
+version = "0.1.0"
+description = "DevWatch Scheduler Microservice"
+requires-python = ">=3.13"
+dependencies = [
+    "celery>=5.5.0",
+    "dishka>=1.5.2",
+    "pydantic>=2.11.1",
+    "pydantic-settings>=2.8.1",
+    "redis>=5.2.1",
+    "sentry-sdk>=2.25.1",
+]

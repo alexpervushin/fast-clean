@@ -41,6 +41,7 @@ $PSScriptRoot = Get-Location
 
 Invoke-UvLockInDirectory -ServicePath "microservices\users"
 Invoke-UvLockInDirectory -ServicePath "microservices\settings"
+Invoke-UvLockInDirectory -ServicePath "microservices\scheduler"
 
 Write-Host "All lock files generated successfully." -ForegroundColor Green
 exit 0
